@@ -1,2 +1,0 @@
-2018-02-20 15:41:53,765:WARNING:root: Failed to load extension core.
-AttributeError: 'list' object has no attribute 'core'

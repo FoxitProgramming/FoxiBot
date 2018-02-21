@@ -4,6 +4,8 @@ from discord.ext import commands
 import logging
 import configparser
 
+import asyncio
+
 config = configparser.ConfigParser()
 config.read("config.ini")
 
@@ -11,7 +13,7 @@ bot = commands.Bot(command_prefix = commands.when_mentioned_or(*["fb/","!"]), de
 log = logging.getLogger()
 
 def startup():
-    #startLogging()
+    startLogging()
 
     token = config.get("General", "bot_token")
     cogs = config.items("Cogs")
@@ -28,7 +30,21 @@ def startup():
         logging.critical("Token must be set in config to log in!")
         sys.exit(1)
 
-    bot.run(token)
+    loop = asyncio.get_event_loop()
+
+    try:
+        loop.run_until_complete(bot.start(token))
+    except discord.LoginFailure:
+        logging.critical("Invalid token")
+        loop.run_until_complete(bot.logout())
+    except KeyboardInterrupt:
+        logging.info("Keyboard interrupt detected. Quitting...")
+        loop.run_until_complete(bot.logout())
+    except Exception as exc:
+        logging.critical("Fatal Exception", exc_info=exc)
+        loop.run_until_complete(bot.logout())
+    finally:
+        log.info("Logged out and closed websocket.")
 
 def startLogging():
     log.setLevel(logging.INFO)

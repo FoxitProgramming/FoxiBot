@@ -30,21 +30,7 @@ def startup():
         logging.critical("Token must be set in config to log in!")
         sys.exit(1)
 
-    loop = asyncio.get_event_loop()
-
-    try:
-        loop.run_until_complete(bot.start(token))
-    except discord.LoginFailure:
-        logging.critical("Invalid token")
-        loop.run_until_complete(bot.logout())
-    except KeyboardInterrupt:
-        logging.info("Keyboard interrupt detected. Quitting...")
-        loop.run_until_complete(bot.logout())
-    except Exception as exc:
-        logging.critical("Fatal Exception", exc_info=exc)
-        loop.run_until_complete(bot.logout())
-    finally:
-        log.info("Logged out and closed websocket.")
+    bot.run(token)
 
 def startLogging():
     log.setLevel(logging.INFO)

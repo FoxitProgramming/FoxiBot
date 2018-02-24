@@ -41,6 +41,7 @@ class TempRooms:
         await ctx.author.move_to(room)
         asyncio.sleep(1)
         await room.edit(user_limit = num)
+        await room.set_permissions(ctx.author, create_instant_invite = True)
         await ctx.send(f"Created room {name}, with space for {num} people.")
         log.info(f"{ctx.author} created room {name} with space for {num} people.")
 
@@ -53,6 +54,29 @@ class TempRooms:
 
             await channel.delete()
             log.info(f"{before.channel} deleted.")
+
+    @commands.command(name = "invite", aliases = ["i"])
+    async def invite(self, ctx, users = None):
+        if not(ctx.author.voice):
+            await ctx.send("You need to be in a voice channel to do that")
+            return
+
+        if not(ctx.author.voice.channel.category.id == int(config.get("TempRooms","tr_create_category"))):
+            await ctx.send("You need to be in a custom room to do that!")
+            return
+
+        try:
+            users = ctx.message.mentions
+        except:
+            await ctx.send("You need to tag users to invite!")
+            return
+
+        userstring = ", ".join(user.name for user in users)
+
+        for user in users:
+            await ctx.author.voice.channel.set_permissions(user, connect = True)
+
+        await ctx.send(f"{userstring} now has access to join {ctx.author.voice.channel}")
 
     async def on_voice_state_update(self, member, before, after):
         if not(before.channel):
